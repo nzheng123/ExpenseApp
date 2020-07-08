@@ -48,8 +48,9 @@ export const addExpense = (expense) => ({
 
 
 //RETURN function
-export const startAddExpense = (expenseData = {}) => async(dispatch) => {
+export const startAddExpense = (expenseData = {}) => async(dispatch,getState) => {
     try {
+    const uid = getState().auth.uid;
     const {
       description = '',
       note = '',
@@ -57,7 +58,7 @@ export const startAddExpense = (expenseData = {}) => async(dispatch) => {
       createdAt = 0
     } = expenseData;
     const expense = { description, note, amount, createdAt };
-     const expData=await database.ref('expenses').push(expense);
+     const expData=await database.ref(`users/${uid}/expenses`).push(expense);
      const result=dispatch(addExpense({id:expData.key, ...expense}));
     return result;
   } catch (err) {
@@ -88,9 +89,10 @@ export const setExpenses = (expenses) => ({
   expenses
 });
 
-export const startSetExpenses = () => async(dispatch) => {
+export const startSetExpenses = () => async(dispatch,getState) => {
   try {
-    const snapshot=await database.ref('expenses').once('value');
+    const uid = getState().auth.uid;
+    const snapshot=await database.ref(`users/${uid}/expenses`).once('value');
     
     const expenses = [];
     snapshot.forEach((childSnapshot) => {
@@ -112,9 +114,10 @@ export const startSetExpenses = () => async(dispatch) => {
 
 
 
-export const startRemoveExpense = ({ id } = {}) => async(dispatch) => {
+export const startRemoveExpense = ({ id } = {}) => async(dispatch,getState) => {
   try{
-    const snapshot=await database.ref(`expenses/${id}`).remove();
+    const uid = getState().auth.uid;
+    const snapshot=await database.ref(`users/${uid}/expenses/${id}`).remove();
       return dispatch(removeExpense({ id }));
   } catch(error) {
     console.log("error:",err);
@@ -123,9 +126,10 @@ export const startRemoveExpense = ({ id } = {}) => async(dispatch) => {
     };
 
 
-export const startEditExpense = (id, updates) => async(dispatch) => {
+export const startEditExpense = (id, updates) => async(dispatch,getState) => {
   try{
-        const snapshot=await database.ref(`expenses/${id}`).update(updates);
+        const uid = getState().auth.uid;
+        const snapshot=await database.ref(`users/${uid}/expenses/${id}`).update(updates);
     return dispatch(editExpense(id,updates ));
     } catch(error) {
         console.log("error:",error);
